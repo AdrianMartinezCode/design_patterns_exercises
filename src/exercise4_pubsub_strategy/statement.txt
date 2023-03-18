@@ -1,0 +1,232 @@
+You are tasked with designing a weather monitoring system that receives weather data from different weather
+stations, processes it, and notifies subscribed clients about weather updates in their area. The system should
+also allow clients to request custom weather updates, like hourly forecasts or severe weather alerts.
+
+Design a solution that allows the weather monitoring system to receive and process data from multiple weather
+stations with different data formats, notify clients about weather updates, and enable clients to request custom
+weather updates. Your solution should be flexible enough to add new weather stations and custom weather update types
+without modifying the existing code.
+
+Write the code in your preferred programming language without mentioning the design patterns used.
+
+public class Application {
+
+    public static void main(String[] args) {
+        WeatherPublisherManager manager = new WeatherPublisherManager();
+
+        WeatherStationBarcelona stationBarcelona = new WeatherStationBarcelona(manager);
+        WeatherStationBerlin stationBerlin = new WeatherStationBerlin(manager);
+
+
+        manager.subscribeToAlert(
+                new WeatherSubscriberCar(), new WeatherDataAlertJSON()
+        );
+        manager.subscribeToAlert(
+                new WeatherSubscriberGalicianPort(), new WeatherDataAlertXML()
+        );
+        manager.subscribeToData(
+                new WeatherSubscriberCar(), new WeatherDataUpdateJSON()
+        );
+        manager.subscribeToData(
+                new WeatherSubscriberGalicianPort(), new WeatherDataUpdateXML()
+        );
+
+
+        stationBarcelona.sendEvents();
+        stationBerlin.sendEvents();
+
+
+    }
+
+}
+public class WeatherDataAlertJSON implements WeatherDataAlertStrategy {
+
+
+    @Override
+    public String getDataFromObject(WeatherDataAlertObject object) {
+        return String.format(
+                "{weatherAlert:{alert:%s,severity:%s}}",
+                object.getAlertMessage(),
+                object.getSeverity()
+        );
+    }
+}
+
+public class WeatherDataAlertObject {
+
+    private String alertMessage;
+    private String severity;
+
+    public WeatherDataAlertObject(String alertMessage, String severity) {
+        this.alertMessage = alertMessage;
+        this.severity = severity;
+    }
+
+    public String getAlertMessage() {
+        return alertMessage;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+}
+public interface WeatherDataAlertStrategy {
+
+    String getDataFromObject(WeatherDataAlertObject object);
+
+}
+public class WeatherDataAlertXML implements WeatherDataAlertStrategy {
+
+    @Override
+    public String getDataFromObject(WeatherDataAlertObject object) {
+        return String.format(
+                "<weatherAlert><alert>%s</alert><severity>%s</severity></weatherData>",
+                object.getAlertMessage(),
+                object.getSeverity()
+        );
+    }
+}
+public class WeatherDataUpdateJSON implements WeatherDataUpdateStrategy {
+
+    @Override
+    public String getDataFromObject(WeatherDataUpdateObject object) {
+        return String.format(
+                "{weatherData:{degrees:%s,kmh:%s}}",
+                String.valueOf(object.getDegrees()),
+                String.valueOf(object.getKmh())
+        );
+    }
+}
+public class WeatherDataUpdateObject {
+
+    private double degrees;
+    private double kmh;
+
+    public WeatherDataUpdateObject(double degrees, double kmh) {
+        this.degrees = degrees;
+        this.kmh = kmh;
+    }
+
+    public double getDegrees() {
+        return degrees;
+    }
+
+    public double getKmh() {
+        return kmh;
+    }
+}
+public interface WeatherDataUpdateStrategy {
+    String getDataFromObject(WeatherDataUpdateObject object);
+}
+public class WeatherDataUpdateXML implements WeatherDataUpdateStrategy {
+
+    @Override
+    public String getDataFromObject(WeatherDataUpdateObject object) {
+        return String.format(
+                "<weatherData><degrees>%s</degrees><kmh>%s</kmh></weatherData>",
+                String.valueOf(object.getDegrees()),
+                String.valueOf(object.getKmh())
+        );
+    }
+}
+public interface WeatherPublisher {
+
+    void publishAlert(WeatherDataAlertObject o);
+
+    void publishUpdate(WeatherDataUpdateObject o);
+}
+import java.util.ArrayList;
+
+public class WeatherPublisherManager implements WeatherPublisher {
+
+    private ArrayList<WeatherSubscriber> alertSubscribers;
+    private ArrayList<WeatherDataAlertStrategy> alertSubscribersStrategies;
+    private ArrayList<WeatherSubscriber> updateSubscribers;
+    private ArrayList<WeatherDataUpdateStrategy> updateSubscribersStrategies;
+
+
+    public void subscribeToAlert(WeatherSubscriber s, WeatherDataAlertStrategy str) {
+        alertSubscribers.add(s);
+        alertSubscribersStrategies.add(str);
+    }
+    public void subscribeToData(WeatherSubscriber s, WeatherDataUpdateStrategy str) {
+        updateSubscribers.add(s);
+        updateSubscribersStrategies.add(str);
+    }
+
+    public void publishAlert(WeatherDataAlertObject o) {
+        int i = 0;
+        while(i < alertSubscribers.size()) {
+            alertSubscribers.get(i).update(alertSubscribersStrategies.get(i).getDataFromObject(o));
+            i++;
+        }
+    }
+
+    public void publishUpdate(WeatherDataUpdateObject o) {
+        int i = 0;
+        while(i < updateSubscribers.size()) {
+            updateSubscribers.get(i).update(updateSubscribersStrategies.get(i).getDataFromObject(o));
+        }
+    }
+}
+public abstract class WeatherStation {
+
+    protected WeatherPublisher weatherPublisher;
+
+    public WeatherStation(WeatherPublisher weatherPublisher) {
+        this.weatherPublisher = weatherPublisher;
+    }
+}
+public class WeatherStationBarcelona extends WeatherStation {
+
+    public WeatherStationBarcelona(WeatherPublisher weatherPublisher) {
+        super(weatherPublisher);
+    }
+
+
+    public void sendEvents() {
+        weatherPublisher.publishAlert(new WeatherDataAlertObject("SNOWING", "CRITICAL"));
+        weatherPublisher.publishUpdate(new WeatherDataUpdateObject(-40.0, 125));
+    }
+}
+public class WeatherStationBerlin extends WeatherStation {
+
+
+    public WeatherStationBerlin(WeatherPublisher weatherPublisher) {
+        super(weatherPublisher);
+    }
+
+
+    public void sendEvents() {
+        weatherPublisher.publishAlert(new WeatherDataAlertObject("SUNNY", "LOW"));
+        weatherPublisher.publishUpdate(new WeatherDataUpdateObject(32.0, 5));
+    }
+}
+public interface WeatherSubscriber {
+
+    void update(String data);
+
+}
+public class WeatherSubscriberCar implements WeatherSubscriber {
+    @Override
+    public void update(String data) {
+        System.out.println("### MONITORING THE SECURITY SYSTEM OF THE CAR: " + data);
+    }
+}
+import java.util.ArrayList;
+import java.util.List;
+
+public class WeatherSubscriberGalicianPort implements WeatherSubscriber {
+
+    private List<String> events;
+
+    public WeatherSubscriberGalicianPort() {
+        this.events = new ArrayList<>();
+    }
+
+    @Override
+    public void update(String data) {
+        System.out.println("SENDING DATA TO THE GALICIAN PORT AUTHORITY: " + data);
+        events.add(data);
+    }
+}

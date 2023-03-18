@@ -1,0 +1,84 @@
+Exercise 2:
+Imagine you are working on a document editor application, which allows users to create different types of
+shapes like circles, rectangles, and triangles. The application should be easily extensible to support
+new shapes in the future without modifying the existing code. Write a solution that allows drawing and
+resizing these shapes, and I'll review it for you.
+
+
+public interface Shape {
+    void drawShape(PaintPanel paintPanel);
+    void resizeShape(double ratio);
+}
+
+public abstract class AbstractShape {
+
+    protected int x;
+    protected int y;
+}
+
+public class CircleShape extends AbstractShape implements Shape {
+
+    static double PI = 3.1415926535;
+
+    private double radius;
+
+    @Override
+    public void drawShape(PaintPanel paintPanel) {
+        for (int i = 0; i < 360; i += 1) {
+            int angle = i;
+            double x1 = radius * Math.cos(angle * PI / 180);
+            double y1 = radius * Math.sin(angle * PI / 180);
+            paintPanel.drawPoint((int)x1 + x, (int)y1 + y);
+        }
+    }
+
+    @Override
+    public void resizeShape(double ratio) {
+        radius = radius*ratio;
+    }
+}
+
+public class SquareShape extends AbstractShape implements Shape {
+
+    private int length;
+
+    @Override
+    public void drawShape(PaintPanel paintPanel) {
+        for (int i = 0; i < length; i++) {
+            paintPanel.drawPoint(x + i - length/2, y - length/2);
+            paintPanel.drawPoint(x - length/2, y + i - length/2);
+            paintPanel.drawPoint(x + i - length/2, y + length/2);
+            paintPanel.drawPoint(x + length/2, y + i - length/2);
+        }
+    }
+
+    @Override
+    public void resizeShape(double ratio) {
+        length = (int)(length*ratio);
+    }
+}
+public class PaintPanel {
+    public void drawPoint(int x, int y) {
+        // mock method
+    }
+}
+import java.util.List;
+
+public class Document {
+
+    private PaintPanel paintPanel;
+    private List<Shape> shapes;
+
+
+    public void addShape(Shape shape) {
+        shapes.add(shape);
+    }
+
+    public void draw() {
+        shapes.forEach(s -> s.drawShape(paintPanel));
+    }
+
+    public void resizeShape(double factor, int ishape) {
+        shapes.get(ishape).resizeShape(factor);
+    }
+}

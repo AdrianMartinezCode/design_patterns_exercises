@@ -1,0 +1,178 @@
+Exercise 2:
+Imagine you are working on a document editor application, which allows users to create different types of
+shapes like circles, rectangles, and triangles. The application should be easily extensible to support
+new shapes in the future without modifying the existing code. Write a solution that allows drawing and
+resizing these shapes, and I'll review it for you.
+
+
+public abstract class AbstractShape {
+
+    protected int x;
+    protected int y;
+
+    public AbstractShape(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+}
+public class CircleShape extends AbstractShape implements Shape {
+
+    static double PI = 3.1415926535;
+
+    private double radius;
+
+
+    public CircleShape(int x, int y, double radius) {
+        super(x, y);
+        this.radius = radius;
+    }
+
+    public static double getPI() {
+        return PI;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    @Override
+    public void accept(ShapeVisitor shapeVisitor) {
+        shapeVisitor.visit(this);
+    }
+}
+import java.util.List;
+
+public class Document implements Shape {
+    private List<Shape> shapes;
+
+
+    public void addShape(Shape shape) {
+        shapes.add(shape);
+    }
+
+    @Override
+    public void accept(ShapeVisitor shapeVisitor) {
+        shapes.forEach(s -> s.accept(shapeVisitor));
+        shapeVisitor.visit(this);
+    }
+}
+public class DrawShapeVisitor implements ShapeVisitor {
+
+    private PaintPanel paintPanel;
+
+    @Override
+    public void visit(CircleShape circleShape) {
+        for (int i = 0; i < 360; i += 1) {
+            int angle = i;
+            double x1 = circleShape.getRadius() * Math.cos(angle * CircleShape.getPI() / 180);
+            double y1 = circleShape.getRadius() * Math.sin(angle * CircleShape.getPI() / 180);
+            paintPanel.drawPoint((int)x1 + circleShape.getX(), (int)y1 + circleShape.getY());
+        }
+    }
+
+    @Override
+    public void visit(SquareShape squareShape) {
+        int x = squareShape.x;
+        int y = squareShape.y;
+        int length = squareShape.getLength();
+        for (int i = 0; i < length; i++) {
+            paintPanel.drawPoint(x + i - length/2, y - length/2);
+            paintPanel.drawPoint(x - length/2, y + i - length/2);
+            paintPanel.drawPoint(x + i - length/2, y + length/2);
+            paintPanel.drawPoint(x + length/2, y + i - length/2);
+        }
+    }
+
+    @Override
+    public void visit(Document document) {
+        // draw points to make blank the foreground of the panel
+        // TODO make 200x600 (DIN A4) as the Document properties
+        for (int i = 0; i < 200; i++) {
+            for (int j = 0; j < 600; j++) {
+                paintPanel.drawPoint(i, j);
+            }
+        }
+    }
+}
+public class PaintPanel {
+    public void drawPoint(int x, int y) {
+        // mock method
+    }
+}
+
+public class ResizeShapeVisitor implements ShapeVisitor {
+
+    private int resizeFactor;
+
+    public ResizeShapeVisitor(int resizeFactor) {
+        this.resizeFactor = resizeFactor;
+    }
+
+    @Override
+    public void visit(CircleShape circleShape) {
+        circleShape.setRadius(circleShape.getRadius()*resizeFactor);
+    }
+
+    @Override
+    public void visit(SquareShape squareShape) {
+        squareShape.setLength((int)(squareShape.getLength()*resizeFactor));
+    }
+
+    @Override
+    public void visit(Document document) {
+        // do nothing, the document shouldn't be resized
+    }
+}
+public interface Shape {
+    void accept(ShapeVisitor shapeVisitor);
+}
+public interface ShapeVisitor {
+    void visit(CircleShape circleShape);
+    void visit(SquareShape squareShape);
+    void visit(Document document);
+}
+public class SquareShape extends AbstractShape implements Shape {
+
+    private int length;
+
+    public SquareShape(int x, int y, int length) {
+        super(x, y);
+        this.length = length;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    @Override
+    public void accept(ShapeVisitor shapeVisitor) {
+        shapeVisitor.visit(this);
+    }
+}
+public class VisitorDemo {
+    public static void main(String[] args) {
+        Document d = new Document();
+        d.addShape(new SquareShape(1, 1, 1));
+        d.addShape(new CircleShape(2, 3, 5.0));
+
+        d.accept(new ResizeShapeVisitor(5));
+        d.accept(new DrawShapeVisitor());
+    }
+}
+

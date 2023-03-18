@@ -1,0 +1,73 @@
+Exercise 1:
+Imagine you are working on a program that needs to display messages in
+different formats, such as plain text, HTML, and JSON. You want to make it
+easy to add new formats in the future without modifying the existing code.
+Write a solution that meets these requirements, and I'll review it for you.
+
+
+
+
+public interface DisplayerStrategy {
+    void displayObject(ExampleObject obj);
+}
+
+public class ExampleObject {
+    private String field1;
+    private String field2;
+
+    public ExampleObject(String field1, String field2) {
+        this.field1 = field1;
+        this.field2 = field2;
+    }
+
+    public String getField1() {
+        return field1;
+    }
+
+    public String getField2() {
+        return field2;
+    }
+}
+public class JSONDisplayerStrategy implements DisplayerStrategy {
+    @Override
+    public void displayObject(ExampleObject obj) {
+        String json = "{exampleObject: {field1: " + obj.getField1() + ",field2:" + obj.getField2() + "}}";
+        System.out.println(json);
+    }
+}
+public class XMLDisplayerStrategy implements DisplayerStrategy {
+    @Override
+    public void displayObject(ExampleObject obj) {
+        String message = "<exampleObject>" +
+                "<field1>" + obj.getField1() + "</field1>" +
+                "<field2>" + obj.getField2() + "</field2>" +
+                "</exampleObject>";
+        System.out.println(message);
+    }
+}
+public class PlainTextDisplayerStrategy implements DisplayerStrategy {
+    @Override
+    public void displayObject(ExampleObject obj) {
+        System.out.println("ExampleObject:\n");
+        System.out.println("Field1: " + obj.getField1() + "\n");
+        System.out.println("Field2: " + obj.getField2() + "\n");
+    }
+}
+public class Program {
+
+    private DisplayerStrategy displayerStrategy;
+    private ExampleObject exampleObject;
+
+    public void setExampleObject(ExampleObject exampleObject) {
+        this.exampleObject = exampleObject;
+    }
+
+    public void displayObject() {
+        this.displayerStrategy.displayObject(exampleObject);
+    }
+
+    public void setDisplayerStrategy(DisplayerStrategy displayerStrategy) {
+        this.displayerStrategy = displayerStrategy;
+    }
+
+}
