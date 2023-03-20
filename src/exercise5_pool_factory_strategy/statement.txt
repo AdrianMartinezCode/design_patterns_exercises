@@ -1,0 +1,6 @@
+You are asked to create a small game where multiple types of enemy ships attack the player's spaceship. Your
+task is to design a solution that will help you create different types of enemy ships and provide an efficient
+way to spawn them at runtime. In addition, you need to implement a simple attack behavior for each enemy ship
+that can be easily modified in the future. Use three design patterns to achieve this.
+
+
