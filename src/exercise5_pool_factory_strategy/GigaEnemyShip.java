@@ -17,7 +17,7 @@ public class GigaEnemyShip extends EnemyShip {
     @Override
     public Bullet fire(BulletObjectPool bulletObjectPool) {
         // TODO the direction should be a vector pointing to the target
-        Bullet b = bulletObjectPool.create(new BulletObjectPool.BulletDto(getX(), getY(), 10));
+        Bullet b = bulletObjectPool.checkOut(new BulletObjectPool.BulletDto(getX(), getY(), 10));
         MoveBulletAbstractStrategy strategy = getMoveBulletFactory().getPool().checkOut(new MoveBulletStrategyObjectPool.MoveBulletStrategyDto(1, 1, b, getMoveBulletFactory()));
         b.setMoveBulletStrategy(strategy);
         return b;

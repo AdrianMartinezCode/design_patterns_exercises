@@ -48,8 +48,11 @@ public abstract class ObjectPool<T, DTO> {
     }
 
     public synchronized void checkIn(T t) {
-        locked.remove(t);
-        unlocked.put(t, System.currentTimeMillis());
+        if (locked.contains(t)) {
+            locked.remove(t);
+            unlocked.put(t, System.currentTimeMillis());
+        }
+
     }
 
 

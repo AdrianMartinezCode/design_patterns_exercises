@@ -25,6 +25,8 @@ public class Scenario {
     private List<EnemyShip> enemies;
 
     public void game() {
+        // TODO make the pools more unified to be able to checkin in one operation
+
         enemyShipFactoryGiga = new EnemyShipFactoryGiga();
         shipObjectPoolGiga = new ShipObjectPool(enemyShipFactoryGiga);
 
@@ -42,9 +44,9 @@ public class Scenario {
         bulletObjectPool = new BulletObjectPool();
 
         enemies = Arrays.asList(
-            shipObjectPoolGiga.create(new ShipObjectPool.EnemyShipDto(1, 2, moveBulletFactoryStraight)),
-            shipObjectPoolGiga.create(new ShipObjectPool.EnemyShipDto(1, 3, moveBulletFactoryZigZag)),
-            shipObjectPoolOrdinary.create(new ShipObjectPool.EnemyShipDto(2, 4, moveBulletFactoryStraight))
+            shipObjectPoolGiga.checkOut(new ShipObjectPool.EnemyShipDto(1, 2, moveBulletFactoryStraight)),
+            shipObjectPoolGiga.checkOut(new ShipObjectPool.EnemyShipDto(1, 3, moveBulletFactoryZigZag)),
+            shipObjectPoolOrdinary.checkOut(new ShipObjectPool.EnemyShipDto(2, 4, moveBulletFactoryStraight))
         );
 
         while(true) {
@@ -70,6 +72,8 @@ public class Scenario {
         }
         for (EnemyShip e : enemiesToDelete) {
             enemies.remove(e);
+            shipObjectPoolGiga.checkIn(e);
+            shipObjectPoolOrdinary.checkIn(e);
         }
 
         ArrayList<Bullet> bulletsToDelete = new ArrayList<>();
@@ -78,6 +82,10 @@ public class Scenario {
         }
         for (Bullet e : bulletsToDelete) {
             bullets.remove(e);
+            bulletObjectPool.checkIn(e);
+            // TODO fix that.
+            moveBulletStrategyObjectPoolZigZag.checkIn(e.getMoveBulletStrategy());
+            moveBulletStrategyObjectPoolStraight.checkIn(e.getMoveBulletStrategy());
         }
     }
 
