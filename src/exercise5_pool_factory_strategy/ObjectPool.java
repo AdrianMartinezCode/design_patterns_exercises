@@ -27,6 +27,7 @@ public abstract class ObjectPool<T, DTO> {
                 b = e.nextElement();
                 if (!isAlive(b) && (now - unlocked.get(b)) > expirationTime) {
                     unlocked.remove(b);
+                    expire(b);
                     b = null;
                 } else if (!isAlive(b)) {
                     unlocked.remove(b);
@@ -36,6 +37,7 @@ public abstract class ObjectPool<T, DTO> {
                 } else {
                     // does not have sense that any object is not expired, is alive and it is in the unlocked dic
                     unlocked.remove(b);
+                    expire(b);
                     b = null;
                 }
             }
